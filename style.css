@@ -285,16 +285,11 @@ button:hover {
     width: 100%;
 }
 
-.new-tile {
-    animation: appear 0.2s;
-}
-
 @keyframes appear {
     0% { transform: scale(0); }
     100% { transform: scale(1); }
 }
 
-/* Медиа-запросы для разных размеров экранов */
 @media (min-width: 768px) {
     :root {
         --cell-size: 100px;

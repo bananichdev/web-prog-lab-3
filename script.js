@@ -34,26 +34,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateGrid();
         setupEventListeners();
+        scoreSavedMessage.style.display = 'none';
     }
     
     function createGrid() {
-        gridElement.innerHTML = '';
+        while (gridElement.firstChild) {
+            gridElement.removeChild(gridElement.firstChild);
+        }
+        
         for (let i = 0; i < 16; i++) {
             const cell = document.createElement('div');
-            cell.classList.add('grid-cell');
+            cell.className = 'grid-cell';
             gridElement.appendChild(cell);
         }
     }
     
     function updateGrid() {
-        document.querySelectorAll('.tile').forEach(tile => tile.remove());
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+            tile.parentNode.removeChild(tile);
+        });
         
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
                 const value = grid[row][col];
                 if (value !== 0) {
                     const tile = document.createElement('div');
-                    tile.classList.add('tile', `tile-${value}`);
+                    tile.className = 'tile tile-' + value;
                     tile.textContent = value;
                     
                     const cellSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
@@ -62,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const x = col * (cellSize + cellGap) + cellGap;
                     const y = row * (cellSize + cellGap) + cellGap;
                     
-                    tile.style.left = `${x}px`;
-                    tile.style.top = `${y}px`;
+                    tile.style.left = x + 'px';
+                    tile.style.top = y + 'px';
                     
                     gridElement.appendChild(tile);
                 }
@@ -85,9 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (emptyCells.length > 0) {
-            const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            
-            grid[row][col] = Math.random() < 0.9 ? 2 : 4;
+            const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            grid[randomCell.row][randomCell.col] = Math.random() < 0.9 ? 2 : 4;
         }
     }
     
@@ -248,7 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLeaderboard() {
         const leaderboard = JSON.parse(localStorage.getItem('2048-leaderboard') || '[]');
         
-        leaderboardBody.innerHTML = '';
+        while (leaderboardBody.firstChild) {
+            leaderboardBody.removeChild(leaderboardBody.firstChild);
+        }
         
         if (leaderboard.length === 0) {
             const row = document.createElement('tr');
@@ -260,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(cell);
             leaderboardBody.appendChild(row);
         } else {
-            leaderboard.forEach((entry, index) => {
+            leaderboard.forEach(entry => {
                 const row = document.createElement('tr');
                 
                 const nameCell = document.createElement('td');
@@ -339,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
         rightButton.addEventListener('click', () => move('right'));
         
         let touchStartX, touchStartY;
-        let touchEndX, touchEndY;
         
         gridElement.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -355,8 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (!touchStartX || !touchStartY) return;
             
-            touchEndX = e.changedTouches[0].clientX;
-            touchEndY = e.changedTouches[0].clientY;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
             
             const dx = touchEndX - touchStartX;
             const dy = touchEndY - touchStartY;
