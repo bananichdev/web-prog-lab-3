@@ -56,8 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     tile.classList.add('tile', `tile-${value}`);
                     tile.textContent = value;
                     
-                    const x = col * (100 + 15) + 15;
-                    const y = row * (100 + 15) + 15;
+                    const cellSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
+                    const cellGap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-gap'));
+                    
+                    const x = col * (cellSize + cellGap) + cellGap;
+                    const y = row * (cellSize + cellGap) + cellGap;
                     
                     tile.style.left = `${x}px`;
                     tile.style.top = `${y}px`;
@@ -219,6 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
         playerNameInput.value = '';
         scoreSavedMessage.style.display = 'none';
         document.getElementById('name-input-section').style.display = 'block';
+        
+        setTimeout(() => {
+            playerNameInput.focus();
+        }, 300);
     }
     
     function saveScoreToLeaderboard(name) {
@@ -249,10 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.colSpan = 3;
             cell.textContent = 'Пока нет рекордов';
             cell.style.textAlign = 'center';
+            cell.style.padding = '20px';
             row.appendChild(cell);
             leaderboardBody.appendChild(row);
         } else {
-            leaderboard.forEach(entry => {
+            leaderboard.forEach((entry, index) => {
                 const row = document.createElement('tr');
                 
                 const nameCell = document.createElement('td');
@@ -331,22 +339,29 @@ document.addEventListener('DOMContentLoaded', () => {
         rightButton.addEventListener('click', () => move('right'));
         
         let touchStartX, touchStartY;
+        let touchEndX, touchEndY;
         
-        document.addEventListener('touchstart', (e) => {
+        gridElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-        });
+        }, { passive: false });
         
-        document.addEventListener('touchend', (e) => {
+        gridElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        
+        gridElement.addEventListener('touchend', (e) => {
+            e.preventDefault();
             if (!touchStartX || !touchStartY) return;
             
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
             
             const dx = touchEndX - touchStartX;
             const dy = touchEndY - touchStartY;
             
-            const minSwipeDistance = 50;
+            const minSwipeDistance = 30;
             
             if (Math.abs(dx) > Math.abs(dy)) {
                 if (Math.abs(dx) > minSwipeDistance) {
@@ -368,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             touchStartX = null;
             touchStartY = null;
-        });
+        }, { passive: false });
         
         newGameButton.addEventListener('click', newGame);
         undoButton.addEventListener('click', undoMove);
@@ -390,6 +405,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         closeLeaderboardButton.addEventListener('click', () => {
             leaderboardModal.classList.remove('active');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (e.target === gameOverModal) {
+                gameOverModal.classList.remove('active');
+            }
+            if (e.target === leaderboardModal) {
+                leaderboardModal.classList.remove('active');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (document.activeElement.tagName === 'INPUT') {
+                window.scrollTo(0, 0);
+            }
         });
     }
     
